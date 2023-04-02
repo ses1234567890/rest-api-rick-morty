@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, Characters, Locations
 #from models import Person
 
 app = Flask(__name__)
@@ -36,14 +36,41 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
-def handle_hello():
+@app.route('/users', methods=['GET'])
+def get_all_users():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    users = User.query.all()
+    user_serialized = [x.serialize() for x in users]
 
-    return jsonify(response_body), 200
+    return jsonify({"users": user_serialized}), 200
+
+@app.route('/characters', methods=['GET'])
+def get_all_characters():
+    characters = Characters.query.all()
+    characters_serialized = [x.serialize() for x in characters]
+    return jsonify({"body": characters_serialized}), 200
+
+@app.route('/character/<int:id>', methods=['GET'])
+def get_character_id(id):
+    character = Characters.query.filter_by(id=id).first()
+    if not character:
+        return jsonify({"error": "character not found"})
+    return jsonify(character.serialize()), 200
+
+@app.route('/locations', methods=['GET'])
+def get_all_locations():
+    locations = Locations.query.all()
+    locations_serialized = [x.serialize() for x in locations]
+    return jsonify({"body": locations_serialized}), 200
+
+@app.route('/location/<int:id>', methods=['GET'])
+def get_location_id(id):
+    location = Locations.query.filter_by(id=id).first()
+    if not location:
+        return jsonify({"error": "location not found"})
+    return jsonify(location.serialize()), 200
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
